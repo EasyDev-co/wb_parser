@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
 
+    # Приложения
     'apps.pars_settings.apps.ParsSettingsConfig',
 ]
 

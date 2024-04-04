@@ -67,4 +67,3 @@ class Position(models.Model):
 
     def __str__(self):
         return f'{self.query} - {self.current_position}'
-
