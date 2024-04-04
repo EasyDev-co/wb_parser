@@ -35,6 +35,10 @@ services:
       - static_dir:/opt/src/static/
       - media_dir:/opt/src/media/
       - ./src:/opt/src:rw
+    depends_on:
+      - redis
+      - db
+      - celery
 
   celery:
     <<: *base_web
