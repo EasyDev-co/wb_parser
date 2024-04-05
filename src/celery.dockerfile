@@ -15,7 +15,6 @@ RUN mkdir -p /opt/src/static/ && \
     pip install --upgrade pip && \
     pip install 'poetry>=1.4.2' && \
     poetry config virtualenvs.create false && \
-    poetry add celery && \
     poetry install --no-root --no-dev
 
 COPY . .
