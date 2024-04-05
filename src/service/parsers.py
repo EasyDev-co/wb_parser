@@ -9,9 +9,6 @@ class ProductPositionParser:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update(settings.HEADERS)
-        self.base_url = settings.BASE_URL
-        self.max_pages = settings.MAX_PAGES
-        self.items_per_page = settings.ITEMS_PER_PAGE
 
     @staticmethod
     def _get_query_params(query: str, page: int) -> dict:
@@ -41,7 +38,7 @@ class ProductPositionParser:
     def _fetch_json(self, query: str, page: int = 1) -> dict | None:
         params = self._get_query_params(query, page)
         try:
-            response = self.session.get(self.base_url, params=params)
+            response = self.session.get(settings.BASE_URL, params=params)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
@@ -49,14 +46,14 @@ class ProductPositionParser:
             return None
 
     def parse_position(self, query: str, article: int) -> int | None:
-        for page in range(1, self.max_pages + 1):
+        for page in range(1, settings.MAX_PAGES + 1):
             json_data = self._fetch_json(query, page)
             if json_data and not json_data.get('data', {}).get('products'):
                 break
             position = self._find_product_position(
                 json_data,
                 article,
-                (page - 1) * self.items_per_page
+                (page - 1) * settings.ITEMS_PER_PAGE
             )
             if position is not None:
                 return position
