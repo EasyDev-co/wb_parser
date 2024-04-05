@@ -122,7 +122,18 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
-
+BASE_URL = 'https://search.wb.ru/exactmatch/ru/common/v5/search?'
+HEADERS = {
+    'Accept': "*/*",
+    'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+}
+ITEMS_PER_PAGE = 30
+MAX_PAGES = 20
+APP_TYPE = 128
+CURRENCY = 'rub'
+LANGUAGE = 'ru'
+DESTINATION = -1257786
+SPP = 30
 
 REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
 REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
@@ -138,7 +149,6 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
 
 TELEGRAM_API_URL = 'https://api.telegram.org/bot{}/sendMessage'
-
 
 sentry_sdk.init(
     dsn=os.getenv('SENTRY_DSN'),
