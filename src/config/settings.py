@@ -120,3 +120,21 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+
+
+REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
+REDIS_DB_CELERY = os.environ.get("REDIS_DB_CELERY", 0)
+REDIS_DB_RESULT_CELERY = os.environ.get("REDIS_DB_RESULT_CELERY", 1)
+REDIS_DEFAULT_DB = os.environ.get("REDIS_DEFAULT_DB", 2)
+
+CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_CELERY}"
+CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_RESULT_CELERY}"
+
+
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+CHAT_ID = os.getenv('CHAT_ID')
+
+TELEGRAM_API_URL = 'https://api.telegram.org/bot{}/sendMessage'
+
+
