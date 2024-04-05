@@ -17,6 +17,7 @@ requests = "^2.31.0"
 gevent = "^24.2.1"
 celery = "^5.3.6"
 redis = "^5.0.3"
+sentry-sdk = {extras = ["django"], version = "^1.44.1"}
 
 
 [build-system]
