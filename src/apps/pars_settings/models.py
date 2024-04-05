@@ -31,6 +31,9 @@ class Query(models.Model):
         max_length=255,
         verbose_name='Запрос'
     )
+    target_position = models.PositiveSmallIntegerField(
+        verbose_name='Целевая позиция'
+    )
 
     class Meta:
         verbose_name = 'Запрос'
