@@ -4,7 +4,7 @@ import requests
 from django.conf import settings
 
 
-class WBBot:
+class NotifyService:
     @staticmethod
     def send_message(message):
         api_url = settings.TELEGRAM_API_URL.format(settings.BOT_TOKEN)
