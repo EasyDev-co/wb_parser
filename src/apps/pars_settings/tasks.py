@@ -49,12 +49,12 @@ class StartParseSendMessageTask(BaseTask):
             if position:
                 new_positions.append(position)
 
-            self.notify_service.send_message(
-                message=(
-                    f'Товар с артиклом <b>{query.article.code}</b> упал с '
-                    f'<b>{position.target_position}</b> позиции на <b>{updated_position}(ю)</b>'
-                )
-            )
+                self.notify_service.send_message(
+                        message=(
+                            f'Товар с артиклом <b>{query.article.code}</b> упал с '
+                            f'<b>{position.target_position}</b> позиции на <b>{updated_position}(ю)</b>'
+                        )
+                    )
 
             if len(new_positions) > 2500:
                 with transaction.atomic():
