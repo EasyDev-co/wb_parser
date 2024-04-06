@@ -59,7 +59,7 @@ class StartParseSendMessageTask(BaseTask):
             if len(new_positions) > 2500:
                 with transaction.atomic():
                     self._bulk_create_positions(new_positions)
-                    new_positions = []
+                new_positions = []
 
         if new_positions:
             self._bulk_create_positions(new_positions)
