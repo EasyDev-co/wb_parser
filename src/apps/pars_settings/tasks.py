@@ -3,25 +3,35 @@ from typing import List
 from apps.pars_settings.models import Query
 from config.celery import BaseTask, app
 from django.db import transaction
+
 from service.notify_service import NotifyService
 from service.parsers import ProductPositionParser
-
 from apps.pars_settings.models import Position
 
 
 class QueryUpdater:
     @staticmethod
-    def update_position(query: Query, updated_position: int) -> Position | None:
+    def update_position(query: Query, updated_position: int)\
+            -> tuple[Position | None, bool]:
+        """Создаем новую позицию и проверяем упал ли товар"""
         if updated_position and updated_position != query.target_position:
-            query.target_position = updated_position
-
+            last_position, created = Position.objects.get_or_create(
+                id=query.positions.last().id,
+                defaults={
+                    'query': query,
+                    'current_position': updated_position,
+                    'target_position': query.target_position
+                }
+            )
             position = Position(
                 query=query,
                 current_position=updated_position,
-                target_position=query.target_position,
+                target_position=query.target_position
             )
 
-            return position
+            is_changed = position.current_position < last_position.current_position
+
+            return position, is_changed
 
 
 class StartParseSendMessageTask(BaseTask):
@@ -37,6 +47,16 @@ class StartParseSendMessageTask(BaseTask):
         with transaction.atomic():
             Position.objects.bulk_create(positions)
 
+    def _send_position_notification(self, query: Query, position: Position):
+        last_position = query.positions.last()
+        self.notify_service.send_message(
+            message=(
+                f'Товар с артиклом <b>{query.article.code}</b> упал с '
+                f'<b>{last_position.current_position}</b> позиции на '
+                f'<b>{position.current_position}</b>(ю)'
+            )
+        )
+
     def process(self):
         queries = Query.objects.select_related('article')
         new_positions = []
@@ -45,20 +65,15 @@ class StartParseSendMessageTask(BaseTask):
                 query=query.query,
                 article=int(query.article.code)
             )
-            position = QueryUpdater.update_position(query, updated_position)
-            if position:
-                new_positions.append(position)
-
-                self.notify_service.send_message(
-                        message=(
-                            f'Товар с артиклом <b>{query.article.code}</b> упал с '
-                            f'<b>{position.target_position}</b> позиции на <b>{updated_position}(ю)</b>'
-                        )
-                    )
+            position, is_changed = QueryUpdater.update_position(query, updated_position)
+            if not position:
+                continue
+            new_positions.append(position)
+            if is_changed:
+                self._send_position_notification(query, position)
 
             if len(new_positions) > 2500:
-                with transaction.atomic():
-                    self._bulk_create_positions(new_positions)
+                self._bulk_create_positions(new_positions)
                 new_positions = []
 
         if new_positions:
