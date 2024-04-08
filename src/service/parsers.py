@@ -45,7 +45,7 @@ class ProductPositionParser:
             logging.error(f"Error fetching JSON: {e}")
             return None
 
-    def parse_position(self, query: str, article: int) -> int | None:
+    def parse_position(self, query: str, article: int) -> int:
         for page in range(1, settings.MAX_PAGES + 1):
             json_data = self._fetch_json(query, page)
             if json_data and not json_data.get('data', {}).get('products'):
@@ -57,4 +57,4 @@ class ProductPositionParser:
             )
             if position is not None:
                 return position
-        return None
+        return 0
