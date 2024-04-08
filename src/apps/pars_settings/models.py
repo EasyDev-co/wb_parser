@@ -4,8 +4,7 @@ from django.db import models
 class Article(models.Model):
     """Модель артикула."""
 
-    code = models.CharField(
-        max_length=255,
+    code = models.PositiveIntegerField(
         unique=True,
         verbose_name='Код'
     )
@@ -15,7 +14,7 @@ class Article(models.Model):
         verbose_name_plural = 'Артикулы'
 
     def __str__(self):
-        return self.code
+        return str(self.code)
 
 
 class Query(models.Model):
