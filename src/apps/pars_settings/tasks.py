@@ -11,12 +11,12 @@ from apps.pars_settings.models import Position
 
 class QueryUpdater:
     @staticmethod
-    def update_position(query: Query, updated_position: int)\
+    def update_position(query: Query, updated_position: int) \
             -> tuple[Position | None, bool]:
         """Создаем новую позицию и проверяем упал ли товар"""
         if updated_position and updated_position != query.target_position:
             last_position, created = Position.objects.get_or_create(
-                id=query.positions.last().id,
+                id=query.positions.last().id if query.positions.last() else None,
                 defaults={
                     'query': query,
                     'current_position': updated_position,
