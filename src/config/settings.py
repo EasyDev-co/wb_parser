@@ -1,10 +1,10 @@
 import os
 from pathlib import Path
 
+import sentry_sdk
 from dotenv import load_dotenv
 
 load_dotenv()
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +25,10 @@ INSTALLED_APPS = [
     # Библиотеки
     'rest_framework',
     'django_filters',
+    'django_extensions',
 
+    # Приложения
+    'apps.pars_settings.apps.ParsSettingsConfig',
 ]
 
 MIDDLEWARE = [
@@ -68,7 +71,6 @@ DATABASES = {
         'PORT': os.environ.get('DB_PORT', 5432),
     }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -118,3 +120,36 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+
+BASE_URL = 'https://search.wb.ru/exactmatch/ru/common/v5/search?'
+HEADERS = {
+    'Accept': "*/*",
+    'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+}
+ITEMS_PER_PAGE = 30
+MAX_PAGES = 20
+APP_TYPE = 128
+CURRENCY = 'rub'
+LANGUAGE = 'ru'
+DESTINATION = -1257786
+SPP = 30
+
+REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
+REDIS_DB_CELERY = os.environ.get("REDIS_DB_CELERY", 0)
+REDIS_DB_RESULT_CELERY = os.environ.get("REDIS_DB_RESULT_CELERY", 1)
+REDIS_DEFAULT_DB = os.environ.get("REDIS_DEFAULT_DB", 2)
+
+CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_CELERY}"
+CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_RESULT_CELERY}"
+
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+CHAT_ID = os.getenv('CHAT_ID')
+
+TELEGRAM_API_URL = 'https://api.telegram.org/bot{}/sendMessage'
+
+sentry_sdk.init(
+    dsn=os.getenv('SENTRY_DSN'),
+    traces_sample_rate=1.0,
+    profiles_sample_rate=1.0,
+)
