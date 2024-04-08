@@ -3,6 +3,7 @@ import logging
 
 from functools import wraps
 from celery import Celery, Task
+from celery.schedules import crontab
 
 from .settings import CELERY_BROKER_URL
 
@@ -13,6 +14,13 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 
 logger = logging.getLogger(__name__)
+
+app.conf.beat_schedule = {
+    'start_parse_send_message_task': {
+        'task': 'apps.pars_settings.tasks.StartParseSendMessageTask',
+        'schedule': crontab(minute='0', hour='2'),
+    },
+}
 
 
 class BaseTask(Task):
