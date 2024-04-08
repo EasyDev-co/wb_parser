@@ -1,7 +1,3 @@
-from typing import List
-
-from django.db import transaction
-
 from config.celery import BaseTask, app
 from service.notify_service import NotifyService
 from service.parsers import ProductPositionParser
@@ -10,7 +6,6 @@ from apps.pars_settings.service import QueryUpdater, bulk_create_positions
 
 
 class StartParseSendMessageTask(BaseTask):
-    auto_retry_for = ()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -34,7 +29,7 @@ class StartParseSendMessageTask(BaseTask):
     def _send_error_notification(self, query: Query):
         self.notify_service.send_message(
             message=(
-                f'Товар с артикком <b>{query.article.code}</b> не найден'
+                f'Товар с артиклом <b>{query.article.code}</b> не найден'
             )
         )
 
@@ -44,14 +39,15 @@ class StartParseSendMessageTask(BaseTask):
         for query in queries:
             updated_position = self.product_parser.parse_position(
                 query=query.query,
-                article=int(query.article.code)
+                article=query.article.code
             )
             position = QueryUpdater.update_position(query, updated_position)
             new_positions.append(position)
-            if updated_position and updated_position < query.target_position:
-                self._send_position_notification(query, position)
-            else:
+            if updated_position == 0:
                 self._send_error_notification(query)
+                continue
+            if updated_position < query.target_position:
+                self._send_position_notification(query, position)
 
             if len(new_positions) > 2500:
                 bulk_create_positions(new_positions)
