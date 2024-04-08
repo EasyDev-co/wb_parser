@@ -1,15 +1,5 @@
 version: '3.8'
 
-x-function: &base_web
-  working_dir: /opt/src
-  depends_on:
-    - db
-    - redis
-  networks:
-    - nginx_network
-  env_file:
-    - .env
-
 services:
 
   nginx:
@@ -26,31 +16,27 @@ services:
       - nginx_network
 
   web:
-    <<: *base_web
     build:
       context: ./src
       dockerfile: backend.dockerfile
     container_name: ${PROJECT_SLUG}_app
+    working_dir: /opt/src
     volumes:
       - static_dir:/opt/src/static/
       - media_dir:/opt/src/media/
       - ./src:/opt/src:rw
-
-  celery:
-    <<: *base_web
-    build:
-      context: ./src
-      dockerfile: celery.dockerfile
-    container_name: ${PROJECT_SLUG}_celery
-    volumes:
-      - ./src/:/opt/src/:rw
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - nginx_network
 
 
   db:
     image: postgres:latest
     container_name: ${PROJECT_SLUG}_db
     volumes:
-      - ./dumps:/docker-entrypoint-initdb.d
       - pgdata:/var/lib/postgresql/data
     env_file:
       - .env
@@ -61,22 +47,11 @@ services:
     networks:
       - nginx_network
 
-  redis:
-    image: redis:latest
-    container_name: ${PROJECT_SLUG}_redis
-    volumes:
-      - redis_data:/data
-    ports:
-      - "${REDIS_PORT}:${REDIS_PORT}"
-    networks:
-      - nginx_network
-
 
 volumes:
   static_dir:
   media_dir:
   pgdata:
-  redis_data:
 
 networks:
   nginx_network:
