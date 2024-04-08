@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -26,6 +25,7 @@ INSTALLED_APPS = [
     # Библиотеки
     'rest_framework',
     'django_filters',
+    'django_extensions',
 
     # Приложения
     'apps.pars_settings.apps.ParsSettingsConfig',
@@ -71,7 +71,6 @@ DATABASES = {
         'PORT': os.environ.get('DB_PORT', 5432),
     }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -143,7 +142,6 @@ REDIS_DEFAULT_DB = os.environ.get("REDIS_DEFAULT_DB", 2)
 
 CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_CELERY}"
 CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_RESULT_CELERY}"
-
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
