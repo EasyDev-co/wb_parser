@@ -1,37 +1,12 @@
 from typing import List
 
-from apps.pars_settings.models import Query
-from config.celery import BaseTask, app
 from django.db import transaction
 
+from config.celery import BaseTask, app
 from service.notify_service import NotifyService
 from service.parsers import ProductPositionParser
-from apps.pars_settings.models import Position
-
-
-class QueryUpdater:
-    @staticmethod
-    def update_position(query: Query, updated_position: int) \
-            -> tuple[Position | None, bool]:
-        """Создаем новую позицию и проверяем упал ли товар"""
-        if updated_position and updated_position != query.target_position:
-            last_position, created = Position.objects.get_or_create(
-                id=query.positions.last().id if query.positions.last() else None,
-                defaults={
-                    'query': query,
-                    'current_position': updated_position,
-                    'target_position': query.target_position
-                }
-            )
-            position = Position(
-                query=query,
-                current_position=updated_position,
-                target_position=query.target_position
-            )
-
-            is_changed = position.current_position < last_position.current_position
-
-            return position, is_changed
+from apps.pars_settings.models import Position, Query
+from apps.pars_settings.service import QueryUpdater, bulk_create_positions
 
 
 class StartParseSendMessageTask(BaseTask):
@@ -42,18 +17,24 @@ class StartParseSendMessageTask(BaseTask):
         self.notify_service = NotifyService()
         self.product_parser = ProductPositionParser()
 
-    @staticmethod
-    def _bulk_create_positions(positions: List[Position]):
-        with transaction.atomic():
-            Position.objects.bulk_create(positions)
-
     def _send_position_notification(self, query: Query, position: Position):
-        last_position = query.positions.last()
+        last_current_position = query.positions.last().current_position \
+            if query.positions.last() \
+            else query.target_position
         self.notify_service.send_message(
             message=(
-                f'Товар с артиклом <b>{query.article.code}</b> упал с '
-                f'<b>{last_position.current_position}</b> позиции на '
-                f'<b>{position.current_position}</b>(ю)'
+                f'Товар с артиклом <b>{query.article.code}</b> сместился с '
+                f'<b>{last_current_position}</b> позиции на '
+                f'<b>{position.current_position}</b>(ю)\n\n'
+                f'<b>Целевая позиция</b>={query.target_position}'
+
+            )
+        )
+
+    def _send_error_notification(self, query: Query):
+        self.notify_service.send_message(
+            message=(
+                f'Товар с артикком <b>{query.article.code}</b> не найден'
             )
         )
 
@@ -65,19 +46,19 @@ class StartParseSendMessageTask(BaseTask):
                 query=query.query,
                 article=int(query.article.code)
             )
-            position, is_changed = QueryUpdater.update_position(query, updated_position)
-            if not position:
-                continue
+            position = QueryUpdater.update_position(query, updated_position)
             new_positions.append(position)
-            if is_changed:
+            if updated_position and updated_position < query.target_position:
                 self._send_position_notification(query, position)
+            else:
+                self._send_error_notification(query)
 
             if len(new_positions) > 2500:
-                self._bulk_create_positions(new_positions)
+                bulk_create_positions(new_positions)
                 new_positions = []
 
         if new_positions:
-            self._bulk_create_positions(new_positions)
+            bulk_create_positions(new_positions)
 
 
 start_parse_send_message_task = app.register_task(StartParseSendMessageTask())
