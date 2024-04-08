@@ -13,12 +13,6 @@ psycopg2-binary = "^2.9.9"
 loguru = "^0.7.2"
 python-dotenv = "^1.0.1"
 django-filter = "^23.5"
-requests = "^2.31.0"
-gevent = "^24.2.1"
-celery = "^5.3.6"
-redis = "^5.0.3"
-sentry-sdk = {extras = ["django"], version = "^1.44.1"}
-django-extensions = "^3.2.3"
 
 
 [build-system]
