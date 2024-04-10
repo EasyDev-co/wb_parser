@@ -18,7 +18,7 @@ class StartParseSendMessageTask(BaseTask):
             else query.target_position
         self.notify_service.send_message(
             message=(
-                f'Товар с артиклом <b>{query.article.code}</b> сместился с '
+                f'Товар с артикулом <b>{query.article.code}</b> сместился с '
                 f'<b>{last_current_position}</b> позиции на '
                 f'<b>{position.current_position}</b>(ю)\n\n'
                 f'<b>Целевая позиция</b>={query.target_position}'
@@ -29,7 +29,7 @@ class StartParseSendMessageTask(BaseTask):
     def _send_error_notification(self, query: Query):
         self.notify_service.send_message(
             message=(
-                f'Товар с артиклом <b>{query.article.code}</b> не найден'
+                f'Товар с артикулом <b>{query.article.code}</b> не найден'
             )
         )
 
