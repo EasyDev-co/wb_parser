@@ -1,10 +1,8 @@
-from django.conf import settings
-
 from config.celery import BaseTask, app
 from service.notify_service import NotifyService
 from service.parsers import ProductPositionParser
 from apps.pars_settings.models import Position, Query
-from apps.pars_settings.service import QueryUpdater, bulk_create_positions
+from apps.pars_settings.service import QueryUpdater, MessageType, bulk_create_positions
 
 
 class StartParseSendMessageTask(BaseTask):
@@ -18,9 +16,9 @@ class StartParseSendMessageTask(BaseTask):
             self,
             query: Query = None,
             position: Position = None,
-            message_type=settings.DEFAULT,
+            message_type: MessageType = MessageType.DEFAULT,
     ):
-        if message_type == settings.UPDATED:
+        if message_type == MessageType.UPDATED:
             self.notify_service.send_message(
                 message=(
                     f'Товар с артиклом <b>{query.article.code}</b> сместился с '
@@ -29,7 +27,7 @@ class StartParseSendMessageTask(BaseTask):
                     f'<b>Целевая позиция</b>={query.target_position}'
                 )
             )
-        elif message_type == settings.NOT_FOUND:
+        elif message_type == MessageType.NOT_FOUND:
             self.notify_service.send_message(
                 message=(
                     f'Товар с артикком <b>{query.article.code}</b> не найден'
@@ -58,19 +56,19 @@ class StartParseSendMessageTask(BaseTask):
             if not updated_position:
                 self._send_notification(
                     query=query,
-                    message_type=settings.NOT_FOUND
+                    message_type=MessageType.NOT_FOUND
                 )
             else:
                 self._send_notification(
                     query=query,
                     position=position,
-                    message_type=settings.DEFAULT,
+                    message_type=MessageType.DEFAULT,
                 )
                 if updated_position > query.target_position:
                     self._send_notification(
                         query=query,
                         position=position,
-                        message_type=settings.UPDATED
+                        message_type=MessageType.UPDATED
                     )
 
             if len(new_positions) > 2500:
