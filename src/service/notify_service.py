@@ -5,9 +5,11 @@ from django.conf import settings
 
 
 class NotifyService:
-    @staticmethod
-    def send_message(message):
-        api_url = settings.TELEGRAM_API_URL.format(settings.BOT_TOKEN)
+    def __init__(self, bot_token):
+        self.bot_token = bot_token
+
+    def send_message(self, message):
+        api_url = settings.TELEGRAM_API_URL.format(self.bot_token)
         payload = {
             "chat_id": settings.CHAT_ID,
             "text": message,
