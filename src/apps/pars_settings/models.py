@@ -1,12 +1,36 @@
 from django.db import models
 
 
+class Shop(models.Model):
+    """Модель магазина."""
+    name = models.CharField(
+        max_length=255,
+        verbose_name='Название магазина'
+    )
+
+    class Meta:
+        verbose_name = 'Магазина'
+        verbose_name_plural = 'Магазины'
+
+    def __str__(self):
+        return self.name
+
+
 class Article(models.Model):
     """Модель артикула."""
-
+    name = models.CharField(
+        max_length=255,
+        verbose_name='Название товара'
+    )
     code = models.PositiveIntegerField(
         unique=True,
         verbose_name='Код'
+    )
+    shop = models.ForeignKey(
+        Shop,
+        on_delete=models.CASCADE,
+        related_name='articles',
+        verbose_name='Магазин'
     )
 
     class Meta:
@@ -14,7 +38,7 @@ class Article(models.Model):
         verbose_name_plural = 'Артикулы'
 
     def __str__(self):
-        return str(self.code)
+        return f'{self.name} ({self.code})'
 
 
 class Query(models.Model):
@@ -40,7 +64,7 @@ class Query(models.Model):
         unique_together = ('article', 'query')
 
     def __str__(self):
-        return f'{self.query} ({self.article})'
+        return f'Товар: {self.article}, позиция: {self.target_position}'
 
 
 class Position(models.Model):
