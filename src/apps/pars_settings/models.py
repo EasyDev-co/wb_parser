@@ -74,12 +74,6 @@ class Query(models.Model):
     def __str__(self):
         return f'Товар: {self.article}, позиция: {self.target_position}'
 
-    @staticmethod
-    def get_target(position: int) -> tuple[int, int]:
-        """Метод для получения страницы и позиции"""
-        if position > 100:
-            return position // 100, position % 100
-
 
 class Position(models.Model):
     """Модель для позиций."""
@@ -116,3 +110,9 @@ class Position(models.Model):
 
     def __str__(self):
         return f'{self.query} - {self.current_position}'
+
+    @staticmethod
+    def get_target(position: int) -> tuple[int, int]:
+        """Метод для получения страницы и позиции"""
+        if position > 100:
+            return position // 100, position % 100
