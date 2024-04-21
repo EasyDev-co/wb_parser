@@ -8,7 +8,7 @@ class QueryUpdater:
     @staticmethod
     def update_position(query: Query, updated_page: int, updated_position: int) \
             -> tuple[Position | None, bool]:
-        """Создаем новую позицию и проверяем упал ли товар"""
+        """Создаем новую позицию"""
 
         position = Position(
             query=query,
