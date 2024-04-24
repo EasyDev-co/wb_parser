@@ -29,6 +29,7 @@ INSTALLED_APPS = [
 
     # Приложения
     'apps.pars_settings.apps.ParsSettingsConfig',
+    'apps.tg_users.apps.TgUsersConfig',
 ]
 
 MIDDLEWARE = [
