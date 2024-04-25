@@ -127,7 +127,7 @@ HEADERS = {
     'Accept': "*/*",
     'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 }
-ITEMS_PER_PAGE = 30
+ITEMS_PER_PAGE = 100
 MAX_PAGES = 20
 APP_TYPE = 128
 CURRENCY = 'rub'

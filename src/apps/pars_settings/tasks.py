@@ -27,29 +27,22 @@ class StartParseSendMessageTask(BaseTask):
     ) -> str:
         if message_type == MessageType.UPDATED:
             return (
-                f'Товар <b>"{query.article.name}"</b> сместился с '
-                f'<b>{query.target_page}</b> '
-                f'страницы <b>{query.target_position}</b> позиции на '
-                f' <b>{updated_page}</b> страницу '
-                f'<b>{updated_position}</b>(ю) позицию\n\n'
-                f'<b>Целевая позиция</b>:'
-                f' {updated_page} страница {query.target_position} позиция\n'
-                f'<b>Текущая позиция</b>: '
-                f'{updated_page} страница {updated_position} позиция\n\n'
+                f'🆔: <b>"{query.article.code}"</b>\n'
+                f'🅿:<b>{query.target_page}</b> ✅:<b>{query.target_position}</b> -'
+                f'🅿:<b>{updated_page}</b> ✅:<b>{updated_position}</b>\n'
             )
         elif message_type == MessageType.NOT_FOUND:
             return (
-                f'<b>Ключевой запрос:</b> {query.query}\n'
-                f'<b>Артикул:</b> {query.article.code} - <b>не найдено</b>\n\n'
+                f'<b>🆔:</b> <b>"{query.article.code}"</b> - <b>не найдено</b>\n'
             )
         else:
             return (
-                f'<b>Ключевой запрос:</b> {query.query}\n'
-                f'<b>Артикул:</b> {query.article.code} - '
-                f'<b>{updated_page}</b> страница <b>{updated_position}</b> позиция\n\n'
+                f'<b>🆔:</b> <b>"{query.article.code}"</b>'
+                f'🅿:<b>{updated_page}</b> ✅:<b>{updated_position}</b>\n'
             )
 
     def process(self):
+        last_query = ''
         new_positions = []
 
         shops = list(Shop.objects.all())
@@ -57,11 +50,14 @@ class StartParseSendMessageTask(BaseTask):
         updated_info_message = '<strong>Обновление позиций товаров 📈:</strong>\n\n'
 
         for shop in shops:
-
             default_info_message += f'<strong>{shop.name}</strong>\n\n'
             updated_info_message += f'<strong>{shop.name}</strong>\n\n'
+
             for article in shop.articles.all():
-                for query in article.queries.all():
+                if article.queries.last().query != last_query:
+                    default_info_message += f'\n<b>🔑:</b> {article.queries.last().query}\n'
+
+                for query in Query.objects.select_related('article').filter(article__code=article.code):
                     parsed_position = self.product_parser.parse_position(
                         query=query.query,
                         article=int(article.code)
@@ -86,13 +82,14 @@ class StartParseSendMessageTask(BaseTask):
                         )
                         if (get_clean_position(updated_page, updated_position) >
                                 get_clean_position(query.target_page, query.target_position)):
-
                             updated_info_message += self._get_message(
                                 query=query,
                                 updated_page=updated_page,
                                 updated_position=updated_position,
                                 message_type=MessageType.UPDATED,
                             )
+
+                last_query = article.queries.last().query
 
                 if len(default_info_message) > 3750:
                     self.parse_results_service.send_message(default_info_message)
@@ -102,6 +99,7 @@ class StartParseSendMessageTask(BaseTask):
                 if len(new_positions) > 2500:
                     bulk_create_positions(new_positions)
                     new_positions = []
+
             if len(default_info_message) > 50:
                 self.parse_results_service.send_message(default_info_message)
             if len(updated_info_message) > 50:
