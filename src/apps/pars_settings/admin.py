@@ -20,6 +20,7 @@ class PositionInline(admin.TabularInline):
     model = Position
     extra = 1
 
+
 @admin.register(Shop)
 class ShopAdmin(admin.ModelAdmin):
     """Админ-панель для управления артикулами."""
@@ -51,9 +52,16 @@ class QueryAdmin(admin.ModelAdmin):
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
     """Админ-панель для управления позициями."""
-    list_display = ('query', 'current_position',
-                    'target_position', 'check_date')
-    list_filter = ('query__article__shop__name', 'check_date',)
-    search_fields = ('query__query',)
+    list_display = (
+        'query',
+        'current_page',
+        'current_position',
+        'target_page',
+        'target_position',
+        'check_date',
+    )
+    list_filter = ('query__article__shop__name', 'check_date', )
+
+    search_fields = ('query__query', )
     date_hierarchy = 'check_date'
-    autocomplete_fields = ('query',)
+    autocomplete_fields = ('query', )
