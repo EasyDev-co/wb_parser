@@ -50,7 +50,7 @@ class StartParseSendMessageTask(BaseTask):
         updated_info_message = '<strong>Обновление позиций товаров 📈:</strong>\n\n'
 
         for shop in shops:
-            default_info_message += f'<strong>{shop.name}</strong>\n\n'
+            default_info_message += f'<strong>{shop.name}</strong>\n'
             updated_info_message += f'<strong>{shop.name}</strong>\n\n'
 
             for article in shop.articles.all():
