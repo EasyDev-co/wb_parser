@@ -8,6 +8,8 @@ from apps.pars_settings.service import QueryUpdater, MessageType, bulk_create_po
 from apps.pars_settings.models import Shop
 from service.utils import get_targets, get_clean_position
 
+from apps.pars_settings.models import Article
+
 
 class StartParseSendMessageTask(BaseTask):
 
@@ -42,22 +44,22 @@ class StartParseSendMessageTask(BaseTask):
             )
 
     def process(self):
-        last_query = ''
+        previous_query = ''
         new_positions = []
 
-        shops = list(Shop.objects.all())
         default_info_message = '<strong>Информация по товарам 📊:</strong>\n\n'
         updated_info_message = '<strong>Обновление позиций товаров 📈:</strong>\n\n'
 
-        for shop in shops:
+        for shop in Shop.objects.all():
             default_info_message += f'<strong>{shop.name}</strong>\n'
             updated_info_message += f'<strong>{shop.name}</strong>\n\n'
 
-            for article in shop.articles.all():
-                if article.queries.last().query != last_query:
-                    default_info_message += f'\n<b>🔑:</b> {article.queries.last().query}\n'
+            for query in Query.objects.filter(article__shop=shop).order_by('query'):
+                if query.query != previous_query:
+                    default_info_message += f'\n<b>🔑:</b> {query.query}\n'
 
-                for query in Query.objects.select_related('article').filter(article__code=article.code):
+                for article in Article.objects.filter(queries=query, shop=shop):
+
                     parsed_position = self.product_parser.parse_position(
                         query=query.query,
                         article=int(article.code)
@@ -89,7 +91,7 @@ class StartParseSendMessageTask(BaseTask):
                                 message_type=MessageType.UPDATED,
                             )
 
-                last_query = article.queries.last().query
+                previous_query = query.query
 
                 if len(default_info_message) > 3750:
                     self.parse_results_service.send_message(default_info_message)
