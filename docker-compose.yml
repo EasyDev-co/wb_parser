@@ -45,19 +45,6 @@ services:
     volumes:
       - ./src/:/opt/src/:rw
 
-  beat:
-    <<: *base_web
-    build:
-      context: ./src
-      dockerfile: beat.dockerfile
-    container_name: ${PROJECT_SLUG}_beat
-    volumes:
-      - ./src/:/opt/src/:rw
-    depends_on:
-      - web
-
-
-
   db:
     image: postgres:latest
     container_name: ${PROJECT_SLUG}_db

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 app.conf.beat_schedule = {
     'start_parse_send_message_task': {
         'task': 'apps.pars_settings.tasks.StartParseSendMessageTask',
-        'schedule': crontab(minute='0', hour='2'),
+        'schedule': 7200.0,
     },
 }
 
