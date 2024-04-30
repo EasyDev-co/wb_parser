@@ -27,20 +27,14 @@ class StartParseSendMessageTask(BaseTask):
             updated_position: int = None,
             message_type: MessageType = MessageType.DEFAULT,
     ) -> str:
-        if message_type == MessageType.UPDATED:
+        if message_type == MessageType.NOT_FOUND:
             return (
-                f'🆔: <b>"{query.article.code}"</b>\n'
-                f'🅿:<b>{query.target_page}</b> ✅:<b>{query.target_position}</b> -'
-                f'🅿:<b>{updated_page}</b> ✅:<b>{updated_position}</b>\n'
-            )
-        elif message_type == MessageType.NOT_FOUND:
-            return (
-                f'<b>🆔:</b> <b>"{query.article.code}"</b> - <b>не найдено</b>\n'
+                f'<b>"{query.article.name}"</b> - <b>не найдено</b>\n'
             )
         else:
             return (
-                f'<b>🆔:</b> <b>"{query.article.code}"</b>'
-                f'🅿:<b>{updated_page}</b> ✅:<b>{updated_position}</b>\n'
+                f'<b>"{query.article.name}"</b> - '
+                f'🅿️:<b>{updated_page}</b> ✅:<b>{updated_position}</b>\n'
             )
 
     def process(self):
