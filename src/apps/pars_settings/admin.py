@@ -25,7 +25,7 @@ class PositionInline(admin.TabularInline):
 class ShopAdmin(admin.ModelAdmin):
     """Админ-панель для управления артикулами."""
     list_display = ('name',)
-    search_fields = ('name',)
+    search_fields = ('name__iregex',)
     inlines = (ArticleInline,)
 
 
@@ -34,7 +34,7 @@ class ArticleAdmin(admin.ModelAdmin):
     """Админ-панель для управления артикулами."""
     list_display = ('name', 'code')
     list_filter = ('shop__name',)
-    search_fields = ('code',)
+    search_fields = ('name__iregex', 'code__iregex',  )
     autocomplete_fields = ('shop',)
     inlines = (QueryInline,)
 
@@ -44,7 +44,7 @@ class QueryAdmin(admin.ModelAdmin):
     """Админ-панель для управления запросами."""
     list_display = ('query', 'article')
     list_filter = ('article__shop__name',)
-    search_fields = ('query', 'article__code')
+    search_fields = ('query__iregex', 'article__code__iregex')
     autocomplete_fields = ('article',)
     inlines = (PositionInline,)
 
@@ -62,6 +62,6 @@ class PositionAdmin(admin.ModelAdmin):
     )
     list_filter = ('query__article__shop__name', 'check_date', )
 
-    search_fields = ('query__query', )
+    search_fields = ('query__query__iregex', )
     date_hierarchy = 'check_date'
     autocomplete_fields = ('query', )

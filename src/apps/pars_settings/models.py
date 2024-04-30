@@ -23,7 +23,7 @@ class Article(models.Model):
         max_length=255,
         verbose_name='Название товара'
     )
-    code = models.PositiveIntegerField(
+    code = models.PositiveBigIntegerField(
         unique=True,
         verbose_name='Код'
     )
