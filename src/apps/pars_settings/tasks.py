@@ -102,6 +102,7 @@ class StartParseSendMessageTask(BaseTask):
                 self.updates_service.send_message(updated_info_message)
 
             default_info_message, updated_info_message = '', ''
+            previous_query = ''
 
         if new_positions:
             bulk_create_positions(new_positions)
