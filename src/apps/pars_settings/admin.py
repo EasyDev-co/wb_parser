@@ -62,6 +62,10 @@ class PositionAdmin(admin.ModelAdmin):
     )
     list_filter = ('query__article__shop__name', 'check_date', )
 
-    search_fields = ('query__query__iregex', )
+    search_fields = (
+        'query__query__iregex',
+        'query__article__name__iregex',
+        'query__article__code__iregex',
+    )
     date_hierarchy = 'check_date'
     autocomplete_fields = ('query', )
