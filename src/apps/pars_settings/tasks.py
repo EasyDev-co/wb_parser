@@ -89,8 +89,10 @@ class StartParseSendMessageTask(BaseTask):
 
                 if len(default_info_message) > 3750:
                     self.parse_results_service.send_message(default_info_message)
+                    default_info_message = ''
                 if len(updated_info_message) > 3750:
                     self.updates_service.send_message(updated_info_message)
+                    updated_info_message = ''
 
                 if len(new_positions) > 2500:
                     bulk_create_positions(new_positions)
