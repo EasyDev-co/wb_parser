@@ -156,3 +156,6 @@ sentry_sdk.init(
     traces_sample_rate=1.0,
     profiles_sample_rate=1.0,
 )
+
+GOOGLE_SHEETS_SPREADSHEET_ID = os.getenv('GOOGLE_SHEETS_SPREADSHEET_ID')
+GOOGLE_SHEETS_SCOPES = [os.getenv('GOOGLE_SHEETS_SCOPES')]

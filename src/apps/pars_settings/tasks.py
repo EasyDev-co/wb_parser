@@ -1,12 +1,17 @@
 from django.conf import settings
 
+import logging
+
 from config.celery import BaseTask, app
 from service.notify_service import NotifyService
 from service.parsers import ProductPositionParser
-from apps.pars_settings.models import Position, Query
+from apps.pars_settings.models import Query
 from apps.pars_settings.service import QueryUpdater, MessageType, bulk_create_positions
 from apps.pars_settings.models import Shop
 from service.utils import get_targets, get_clean_position
+from apps.pars_settings.google_sheets.google_sheets_export import GoogleSheet, google_sheet_export
+from datetime import datetime
+
 
 from apps.pars_settings.models import Article
 
@@ -17,8 +22,9 @@ class StartParseSendMessageTask(BaseTask):
         super().__init__(*args, **kwargs)
         self.parse_results_service = NotifyService(token=settings.PARSE_RESULT_BOT_TOKEN)
         self.updates_service = NotifyService(token=settings.UPDATES_BOT_TOKEN)
-
         self.product_parser = ProductPositionParser()
+        self.google_sheet = GoogleSheet()
+        self.logger = logging.getLogger(__name__)
 
     @staticmethod
     def _get_message(
@@ -76,6 +82,11 @@ class StartParseSendMessageTask(BaseTask):
                             updated_position=updated_position,
                             message_type=MessageType.DEFAULT,
                         )
+                        date = datetime.now().strftime('%d-%m-%Y')
+                        data = [
+                            [shop.name, query.query, article.code, updated_page, updated_position, date]
+                        ]
+                        google_sheet_export(self.google_sheet, data)
                         if (get_clean_position(updated_page, updated_position) >
                                 get_clean_position(query.target_page, query.target_position)):
                             updated_info_message += self._get_message(
