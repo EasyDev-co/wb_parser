@@ -9,7 +9,7 @@ from apps.pars_settings.models import Query
 from apps.pars_settings.service import QueryUpdater, MessageType, bulk_create_positions
 from apps.pars_settings.models import Shop
 from service.utils import get_targets, get_clean_position
-from apps.pars_settings.google_sheets.google_sheets_export import GoogleSheet, google_sheet_export
+from apps.pars_settings.google_sheets.google_sheets_export import GoogleSheet
 from datetime import datetime
 
 
@@ -86,7 +86,7 @@ class StartParseSendMessageTask(BaseTask):
                         data = [
                             [shop.name, query.query, article.code, updated_page, updated_position, date]
                         ]
-                        google_sheet_export(self.google_sheet, data)
+                        self.google_sheet.google_sheet_export(data)
                         if (get_clean_position(updated_page, updated_position) >
                                 get_clean_position(query.target_page, query.target_position)):
                             updated_info_message += self._get_message(
