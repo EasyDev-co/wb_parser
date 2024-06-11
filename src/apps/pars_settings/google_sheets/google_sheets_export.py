@@ -17,9 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 class GoogleSheet:
-    SPREADSHEET_ID = GOOGLE_SHEETS_SPREADSHEET_ID
-    SCOPES = GOOGLE_SHEETS_SCOPES
-
     def __init__(self):
         creds = None
         self.sheets_api_client = None
