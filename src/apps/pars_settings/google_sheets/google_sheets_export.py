@@ -10,16 +10,17 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from config.settings import GOOGLE_SHEETS_SCOPES, GOOGLE_SHEETS_SPREADSHEET_ID
+from config.settings import GOOGLE_SHEETS_SPREADSHEET_ID
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class GoogleSheet:
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+
     def __init__(self):
         creds = None
-        self.SCOPES = [GOOGLE_SHEETS_SCOPES]
         self.sheets_api_client = None
         token_path = os.path.join('apps', 'pars_settings', 'google_sheets', 'token.pickle')
         credentials_path = os.path.join('apps', 'pars_settings', 'google_sheets', 'credentials.json')
@@ -34,7 +35,6 @@ class GoogleSheet:
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     credentials_path, self.SCOPES)
-
                 creds = flow.run_local_server(port=0)
             with open(token_path, 'wb') as token:
                 pickle.dump(creds, token)
