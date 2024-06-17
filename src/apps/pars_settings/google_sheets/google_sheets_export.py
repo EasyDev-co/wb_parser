@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 class GoogleSheet:
     def __init__(self):
         creds = None
+        self.SCOPES = [GOOGLE_SHEETS_SCOPES]
         self.sheets_api_client = None
         token_path = os.path.join('apps', 'pars_settings', 'google_sheets', 'token.pickle')
         credentials_path = os.path.join('apps', 'pars_settings', 'google_sheets', 'credentials.json')
@@ -32,7 +33,7 @@ class GoogleSheet:
                 creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    credentials_path, GOOGLE_SHEETS_SCOPES)
+                    credentials_path, self.SCOPES)
 
                 creds = flow.run_local_server(port=0)
             with open(token_path, 'wb') as token:
