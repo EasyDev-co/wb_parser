@@ -50,6 +50,9 @@ class StartParseSendMessageTask(BaseTask):
         default_info_message = '<strong>Информация по товарам 📊:</strong>\n\n'
         updated_info_message = '<strong>Обновление позиций товаров 📈:</strong>\n\n'
 
+        date = datetime.now().strftime('%d-%m-%Y')
+        google_sheet_data = []
+
         for shop in Shop.objects.all():
             default_info_message += f'<strong>{shop.name}</strong>\n'
             updated_info_message += f'<strong>{shop.name}</strong>\n\n'
@@ -75,6 +78,12 @@ class StartParseSendMessageTask(BaseTask):
                             query=query,
                             message_type=MessageType.NOT_FOUND
                         )
+                        google_sheet_data.append(
+                                [
+                                    shop.name, query.query, article.code, updated_page,
+                                    updated_position, date, 'Не найдено'
+                                ]
+                            )
                     else:
                         default_info_message += self._get_message(
                             query=query,
@@ -82,11 +91,12 @@ class StartParseSendMessageTask(BaseTask):
                             updated_position=updated_position,
                             message_type=MessageType.DEFAULT,
                         )
-                        date = datetime.now().strftime('%d-%m-%Y')
-                        data = [
-                            [shop.name, query.query, article.code, updated_page, updated_position, date]
-                        ]
-                        self.google_sheet.google_sheet_export(data)
+                        google_sheet_data.append(
+                            [
+                                shop.name, query.query, article.code, updated_page,
+                                updated_position, date, 'Найдено'
+                            ]
+                        )
                         if (get_clean_position(updated_page, updated_position) >
                                 get_clean_position(query.target_page, query.target_position)):
                             updated_info_message += self._get_message(
@@ -119,6 +129,9 @@ class StartParseSendMessageTask(BaseTask):
 
         if new_positions:
             bulk_create_positions(new_positions)
+
+        if len(google_sheet_data) != 0:
+            self.google_sheet.google_sheet_export(google_sheet_data)
 
 
 start_parse_send_message_task = app.register_task(StartParseSendMessageTask())

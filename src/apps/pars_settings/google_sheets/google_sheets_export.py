@@ -10,15 +10,13 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from config.settings import GOOGLE_SHEETS_SPREADSHEET_ID
+from config.settings import GOOGLE_SHEETS_SPREADSHEET_ID, GOOGLE_SHEETS_SCOPES
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class GoogleSheet:
-    SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-
     def __init__(self):
         creds = None
         self.sheets_api_client = None
@@ -34,7 +32,7 @@ class GoogleSheet:
                 creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    credentials_path, self.SCOPES)
+                    credentials_path, GOOGLE_SHEETS_SCOPES)
                 creds = flow.run_local_server(port=0)
             with open(token_path, 'wb') as token:
                 pickle.dump(creds, token)
@@ -70,6 +68,19 @@ class GoogleSheet:
                     break
         return None
 
+    def clear_sheet(self, sheet_title):
+        try:
+            request = self.sheets_api_client.spreadsheets().values().clear(
+                spreadsheetId=GOOGLE_SHEETS_SPREADSHEET_ID,
+                range=sheet_title
+            )
+            response = request.execute()
+            logger.info(f"Лист '{sheet_title}' успешно очищен.")
+            return response
+        except HttpError as error:
+            logger.error(f"Произошла ошибка при очистке листа: {error}")
+            return None
+
     def get_range_values(self, range):
         result = self.sheets_api_client.spreadsheets().values().get(spreadsheetId=GOOGLE_SHEETS_SPREADSHEET_ID, range=range).execute()
         values = result.get('values', [])
@@ -96,26 +107,18 @@ class GoogleSheet:
     def header_of_sheet(self, list_num):
         header_value = [
             [
-                'Магазин', 'Запрос', 'Артикул', 'Текущая страница', 'Текущая позиция', 'Дата'
+                'Магазин', 'Запрос', 'Артикул', 'Текущая страница', 'Текущая позиция', 'Дата', 'Статус',
             ],
         ]
         header_range = f'List{list_num}!A1:M1'
         self.update_range_values(header_range, header_value)
 
     def google_sheet_export(self, data):
-        sheet_title_number = self.get_last_sheet_number()
-        default_range = f'List{sheet_title_number}!A1:M2000'
-        values = self.get_range_values(default_range)
+        self.clear_sheet('List1')
 
-        if len(values) == 0:
-            self.header_of_sheet(sheet_title_number)
-            time.sleep(2)
-            test_range = f'List{sheet_title_number}!A{len(values) + 2}:M2000'
-        else:
-            test_range = f'List{sheet_title_number}!A{len(values) + 1}:M2000'
-
-        self.update_range_values(test_range, data)
+        self.header_of_sheet(1)
         time.sleep(2)
+        sheet_range = f'List1!A2:M10000'
 
-        if len(values) >= 600:
-            self.create_new_sheet(f'List{sheet_title_number + 1}')
+        self.update_range_values(sheet_range, data)
+        time.sleep(2)
