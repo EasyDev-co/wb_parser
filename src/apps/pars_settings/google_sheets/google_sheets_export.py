@@ -61,7 +61,7 @@ class GoogleSheet:
                 logger.info(f"Таблица '{sheet_title}' успешно создана.")
                 return response
             except HttpError as error:
-                logger.error(f"Произошла ошибка: {error}")
+                logger.error(f"Произошла ошибка при создании листа {sheet_title}: {error}")
                 if error.resp.status in [500, 502, 503, 504]:
                     time.sleep(2 ** attempt)
                 else:
@@ -78,7 +78,7 @@ class GoogleSheet:
             logger.info(f"Лист '{sheet_title}' успешно очищен.")
             return response
         except HttpError as error:
-            logger.error(f"Произошла ошибка при очистке листа: {error}")
+            logger.error(f"Произошла ошибка при очистке листа {sheet_title}: {error}")
             return None
 
     def get_range_values(self, range):
