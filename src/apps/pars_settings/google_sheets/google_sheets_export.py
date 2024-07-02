@@ -5,9 +5,7 @@ import pickle
 import time
 import logging
 
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
@@ -16,34 +14,18 @@ from config.settings import GOOGLE_SHEETS_SPREADSHEET_ID, GOOGLE_SHEETS_SCOPES
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class GoogleSheet:
     def __init__(self):
-        creds = None
-        self.sheets_api_client = None
-        token_path = os.path.join('apps', 'pars_settings', 'google_sheets', 'token.pickle')
         credentials_path = os.path.join('apps', 'pars_settings', 'google_sheets', 'credentials.json')
 
-        # Load the existing token if available
-        if os.path.exists(token_path):
-            with open(token_path, 'rb') as token:
-                creds = pickle.load(token)
-
-        # If there are no valid credentials available, refresh them or log in again
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                try:
-                    creds.refresh(Request())
-                except Exception as e:
-                    logger.error(f"Failed to refresh token: {e}")
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(credentials_path, GOOGLE_SHEETS_SCOPES)
-                creds = flow.run_local_server(port=0)
-
-            # Save the credentials for the next run
-            with open(token_path, 'wb') as token:
-                pickle.dump(creds, token)
-
-        self.sheets_api_client = build('sheets', 'v4', credentials=creds)
+        try:
+            creds = Credentials.from_service_account_file(credentials_path, scopes=GOOGLE_SHEETS_SCOPES)
+            self.sheets_api_client = build('sheets', 'v4', credentials=creds)
+            logger.info("Google Sheets API клиент успешно инициализирован.")
+        except Exception as e:
+            logger.error(f"Ошибка инициализации Google Sheets API клиента: {e}")
+            raise
 
     def create_new_sheet(self, sheet_title):
         requests = [{

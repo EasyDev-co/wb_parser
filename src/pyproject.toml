@@ -19,7 +19,7 @@ celery = "^5.3.6"
 redis = "^5.0.3"
 sentry-sdk = {extras = ["django"], version = "^1.44.1"}
 django-extensions = "^3.2.3"
-google-api-python-client = "^1.12.8"
+google-api-python-client = "^2.27.0"
 google-auth-httplib2 = "^0.1.0"
 gspread = "^6.1.2"
 google-auth = "^2.0.0"
