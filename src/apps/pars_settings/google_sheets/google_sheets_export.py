@@ -1,12 +1,13 @@
 from __future__ import print_function
 
-import os.path
+import os
 import pickle
 import time
 import logging
 
-from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
@@ -15,7 +16,6 @@ from config.settings import GOOGLE_SHEETS_SPREADSHEET_ID, GOOGLE_SHEETS_SCOPES
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 class GoogleSheet:
     def __init__(self):
         creds = None
@@ -23,17 +23,23 @@ class GoogleSheet:
         token_path = os.path.join('apps', 'pars_settings', 'google_sheets', 'token.pickle')
         credentials_path = os.path.join('apps', 'pars_settings', 'google_sheets', 'credentials.json')
 
+        # Load the existing token if available
         if os.path.exists(token_path):
             with open(token_path, 'rb') as token:
                 creds = pickle.load(token)
 
+        # If there are no valid credentials available, refresh them or log in again
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
+                try:
+                    creds.refresh(Request())
+                except Exception as e:
+                    logger.error(f"Failed to refresh token: {e}")
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    credentials_path, GOOGLE_SHEETS_SCOPES)
+                flow = InstalledAppFlow.from_client_secrets_file(credentials_path, GOOGLE_SHEETS_SCOPES)
                 creds = flow.run_local_server(port=0)
+
+            # Save the credentials for the next run
             with open(token_path, 'wb') as token:
                 pickle.dump(creds, token)
 
@@ -47,10 +53,7 @@ class GoogleSheet:
                 }
             }
         }]
-        body = {
-            'requests': requests
-        }
-
+        body = {'requests': requests}
         retries = 3
         for attempt in range(retries):
             try:
@@ -82,7 +85,8 @@ class GoogleSheet:
             return None
 
     def get_range_values(self, range):
-        result = self.sheets_api_client.spreadsheets().values().get(spreadsheetId=GOOGLE_SHEETS_SPREADSHEET_ID, range=range).execute()
+        result = self.sheets_api_client.spreadsheets().values().get(
+            spreadsheetId=GOOGLE_SHEETS_SPREADSHEET_ID, range=range).execute()
         values = result.get('values', [])
         return values
 
@@ -95,8 +99,8 @@ class GoogleSheet:
             'valueInputOption': 'USER_ENTERED',
             'data': data
         }
-        result = self.sheets_api_client.spreadsheets().values().batchUpdate(spreadsheetId=GOOGLE_SHEETS_SPREADSHEET_ID,
-                                                                  body=body).execute()
+        result = self.sheets_api_client.spreadsheets().values().batchUpdate(
+            spreadsheetId=GOOGLE_SHEETS_SPREADSHEET_ID, body=body).execute()
 
     def get_last_sheet_number(self):
         spreadsheet = self.sheets_api_client.spreadsheets().get(spreadsheetId=GOOGLE_SHEETS_SPREADSHEET_ID).execute()
@@ -115,10 +119,8 @@ class GoogleSheet:
 
     def google_sheet_export(self, data):
         self.clear_sheet('List1')
-
         self.header_of_sheet(1)
         time.sleep(2)
         sheet_range = f'List1!A2:M10000'
-
         self.update_range_values(sheet_range, data)
         time.sleep(2)
